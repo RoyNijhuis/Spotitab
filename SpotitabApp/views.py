@@ -77,7 +77,7 @@ def parse_song(artist, song):
     global sp
     r  = requests.get("https://www.ultimate-guitar.com/search.php?search_type=title&order=&value=" + artist + " " + song)
     data = r.content
-    soup = BeautifulSoup(data)
+    soup = BeautifulSoup(data, "html.parser")
     a_elements = soup.find_all("a", class_="song result-link")
     song_data = []
     for a in a_elements:
@@ -89,17 +89,65 @@ def parse_song(artist, song):
         rating = tr.find("span", class_="rating")
         if(rating != None):
             rating = rating.find("span").get("class")
+            if rating != None:
+                rating = rating[0].split("_")[1]
         type = tr.find("strong")
         if(type != None):
             type = type.text
 
         if votes != None and rating != None and link != None and type != None:
             song_data.append([link, rating, votes, type])
-
-    print(song_data)
+    return song_data
 
 def parse_tabs(all_song_data):
-    pass
+
+    #Isolate tabs and find the best candidate
+    tabList = []
+    for entry in all_song_data:
+        if entry[3] == "tab":
+            tabList.append(entry)
+
+    bestTabScore = -1
+    bestTab = None
+
+    for tab in tabList:
+        tabScore = int(tab[1])*int(tab[2])
+        if tabScore > bestTabScore:
+            bestTabScore = tabScore
+            bestTab = tab
+
+    if(bestTab == None):
+        return None
+
+    #Fetch the tabpage and get the tabs
+    tabPage  = requests.get(bestTab[0]).text
+    soup = BeautifulSoup(tabPage, "html.parser")
+    tab_content = soup.find("pre", class_="js-tab-content").text
+    print(tab_content)
+    return tab_content
 
 def parse_chords(all_song_data):
-    pass
+    #Isolate chords and find the best candidate
+    chordList = []
+    for entry in all_song_data:
+        if entry[3] == "chords":
+            chordList.append(entry)
+
+    bestChordScore = -1
+    bestChord = None
+
+    for chord in chordList:
+        chordScore = int(chord[1])*int(chord[2])
+        if chordScore > bestChordScore:
+            bestChordScore = chordScore
+            bestChord = chord
+
+    if(bestChord == None):
+        return None
+
+    #Fetch the chordpage and get the tabs
+    chordPage  = requests.get(bestChord[0]).text
+    soup = BeautifulSoup(chordPage, "html.parser")
+    chord_content = soup.find("pre", class_="js-tab-content").text
+    print(chord_content)
+    return chord_content

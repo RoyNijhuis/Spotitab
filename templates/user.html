@@ -12,6 +12,7 @@
 
         {% load staticfiles %}
         <link rel="stylesheet" href={% static 'styles/spotitab.min.css' %}>
+        <script src="{% static 'styles/js/jquery-2.2.1.min.js' %}"></script>
 
         <!--[if lt IE 9]>
             <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -19,9 +20,25 @@
             <script src="js/vendor/placeholders.min.js"></script>
         <![endif]-->
 
-        <link href="{% static 'styles/custom' %}" rel="stylesheet" type="text/css">
+        <script type="text/javascript">
+        $(document).ready(function(){
+            $('input[type="radio"]').click(function(){
+                if($(this).attr("value")=="chords"){
+                    $(".tabs").hide();
+                    $(".chords").show();
+                }
+                if($(this).attr("value")=="tabs"){
+                    $(".chords").hide();
+                    $(".tabs").show();
+                }
+            });
+            $(".tabs").hide();
+            $(".chords").show();
+        });
+        </script>
 
         <link href="{% static 'styles/css/bootstrap.min.css' %}" rel="stylesheet">
+        <link href="{% static 'styles/custom.css' %}" rel="stylesheet" type="text/css">
 
     </head>
     <body class="">
@@ -33,7 +50,6 @@
         <div class="container">
 	        <div class="row">
                 <div class="col-md-3">
-
                     <div class="list-group" id="sidebar">
                         {% for key, value in playlists.items %}
                             <a href="?playlist={{ key }}" class="list-group-item">
@@ -43,14 +59,41 @@
                     </div>
 
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-9" style="white-space: pre">
                     <table>
+                        {% if tabs or chords %}
+                            <tr>
+                                <div class="btn-group">
+                                    <td>
+                                        <input type="radio" id="radio1" name="radios" value="chords" checked>
+                                        <label for="radio1">Chords</label>
+                                    </td>
+                                    <td>
+                                        <input type="radio" id="radio2" name="radios"value="tabs">
+                                        <label for="radio2">Tabs</label>
+                                    </td>
+                                </div>
+                            </tr>
+                        {% endif %}
+
                         {% if tracks %}
                             {% for id, artist, song in tracks %}
                                 <tr onclick="document.location = '?track={{ id }}';"><td> {{ artist }} </td><td> - </td><td> {{ song }} </td></tr>
                             {% endfor %}
                         {% endif %}
                     </table>
+                    {% if chords %}
+                        <div class="chords" style="font-family: 'Courier New'">
+                            <p>Chords:</p>
+                            {{ chords }}
+                        </div>
+                    {% endif %}
+                    {% if tabs %}
+                        <div class="tabs" style="font-family: 'Courier New'">
+                            <p>Tabs:</p>
+                           {{ tabs }}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
